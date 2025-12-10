@@ -1,6 +1,6 @@
 import sys
 from collections import namedtuple
-from itertools import product
+from itertools import combinations
 
 file_name = sys.argv[1]
 with open(file_name) as f:
@@ -38,13 +38,13 @@ def check_combination(pattern, button_presses):
                 return False
     return True
 
-def combinations(buttons, length):
-    return list(product(buttons, repeat=length))
+def combos(buttons, length):
+    return list(combinations(buttons, length))
 
 def solve_machine(machine):
     i = 1
     while True:
-        cs = combinations(machine.buttons, i)
+        cs = combos(machine.buttons, i)
         for c in cs:
             check = check_combination(machine.pattern, c)
             if check:
