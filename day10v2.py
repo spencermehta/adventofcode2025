@@ -38,32 +38,15 @@ def check_combination(pattern, button_presses):
                 return False
     return True
 
-def combos(buttons, length):
-    return list(combinations(buttons, length))
-
-def solve_machine(machine):
-    i = 1
-    while True:
-        cs = combos(machine.buttons, i)
-        for c in cs:
-            check = check_combination(machine.pattern, c)
-            if check:
-                return i
-        i+=1
-
-def count(current, button):
-    nc = [c for c in current]
-    for b in button:
-        nc[b] +=1
-    return nc
-
-def match(joltage, current):
+def check_joltage(joltage, button_presses):
+    count = [0 for _ in pattern]
+    for button in button_presses:
+        for single_button in button:
+            count[single_button] +=1
     for (i,j) in enumerate(joltage):
-        if j != current[i]:
+        if j != count[i]:
             return False
     return True
-
-M = dict()
 
 def prune(curr_buttons, joltage):
     ret_buttons = []
@@ -82,51 +65,32 @@ def prune(curr_buttons, joltage):
             ret_buttons.append(b)
     return ret_buttons
 
+def combos(buttons, length):
+    return list(combinations(buttons, length))
 
-def dfs(joltage, max_depth, current, pressed, buttons, depth):
-    if match(joltage, current):
-        return depth
-    if depth == max_depth:
-        return None
-    current = count(current, pressed)
-
-    allowed_buttons = prune(buttons, joltage)
-    subs = []
-    for b in allowed_buttons:
-        ans = dfs(joltage, max_depth, current, b, allowed_buttons, depth+1)
-        if ans != None:
-            subs.append(ans)
-    if len(subs) >= 1:
-        return min(subs)
-    return None
-
-
-def solve_machine_2(machine):
+def solve_machine(machine, curr_buttons, buttons, d):
+    if d == 8:
+        return -100
     i = 1
-    while True:
-        print("max depth", i)
-        for start_button in machine.buttons:
-            print("starting", start_button)
-            ans = dfs(machine.joltage, i, [0 for _ in machine.joltage], start_button, machine.buttons, 0)
-            print(ans, "with", start_button)
-            if ans != None:
+    while i <= (len(machine.buttons) * d):
+        cs = combos(prune(curr_buttons, machine.joltage), i)
+        for c in cs:
+            check = check_joltage(machine.joltage, c)
+            if check:
                 print("success")
-                return ans
+                return i
         i+=1
+    return solve_machine(machine, curr_buttons + buttons, buttons, d+1)
+
+def solve_machine_up(machine):
+	return solve_machine(machine, machine.buttons, machine.buttons, 1)
 
 def part_one():
     total = 0
     for machine in machines:
-        m = solve_machine(machine)
+        m = solve_machine_up(machine)
+        print(machine, m)
         total += m
     return total
 
-def part_two():
-    total = 0
-    for machine in machines:
-        m = solve_machine_2(machine)
-        total += m
-    return total
-
-#print(part_one())
-print(part_two())
+print(part_one())
