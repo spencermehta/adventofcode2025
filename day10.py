@@ -82,11 +82,23 @@ def prune(curr_buttons, joltage):
             ret_buttons.append(b)
     return ret_buttons
 
+def prioritize(curr_buttons, joltage):
+    #return sorted(curr_buttons, key=lambda b: len(b), reverse=True)
+    return sorted(curr_buttons, key=lambda b: sum([joltage[bb] for bb in b]), reverse=True)
+
+
+M = dict()
 
 def dfs(joltage, max_depth, current, pressed, buttons, depth):
+    key = (max_depth, tuple(current), tuple(sorted(pressed)))
+    #print(key)
+    if key in M:
+        return M[key]
     if match(joltage, current):
+        M[key] = depth
         return depth
     if depth == max_depth:
+        M[key] = None
         return None
     current = count(current, pressed)
 
@@ -95,20 +107,23 @@ def dfs(joltage, max_depth, current, pressed, buttons, depth):
     for b in allowed_buttons:
         ans = dfs(joltage, max_depth, current, b, allowed_buttons, depth+1)
         if ans != None:
+            M[key] = None
+            return ans
             subs.append(ans)
     if len(subs) >= 1:
+        M[key] =min(subs)
         return min(subs)
+    M[key] = None
     return None
 
 
 def solve_machine_2(machine):
     i = 1
     while True:
-        print("max depth", i)
+        print("max depth",  i)
         for start_button in machine.buttons:
-            print("starting", start_button)
-            ans = dfs(machine.joltage, i, [0 for _ in machine.joltage], start_button, machine.buttons, 0)
-            print(ans, "with", start_button)
+            prio_buttons = prioritize(machine.buttons, machine.joltage)
+            ans = dfs(machine.joltage, i, [0 for _ in machine.joltage], start_button, prio_buttons, 0)
             if ans != None:
                 print("success")
                 return ans
@@ -122,6 +137,7 @@ def part_one():
     return total
 
 def part_two():
+    M = dict()
     total = 0
     for machine in machines:
         m = solve_machine_2(machine)
